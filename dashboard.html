@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IanChromeTab - 控制台</title>
+  <link href="tailwind.css" rel="stylesheet">
+  <link href="dashboard.css" rel="stylesheet">
+  <script src="chart.js"></script>
+  <script src="i18n.js"></script>
+</head>
+<body id="body-bg" class="theme-light bg-dopamine">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">I</div>
+        <h1 data-i18n="appTitle">IanChromeTab</h1>
+      </div>
+      <div class="top-actions">
+        <button id="regroup-btn" class="btn btn-primary" data-i18n="regroupTabs">一键整理</button>
+        <button id="settings-btn" class="btn" data-i18n="settings">设置</button>
+      </div>
+    </header>
+
+    <section class="control-panel quick-panel">
+      <div class="section-heading">
+        <h2 class="section-title" data-i18n="shortcuts">常用网站</h2>
+        <button id="add-shortcut-btn" class="btn btn-primary" data-i18n="addShortcut">添加网站</button>
+      </div>
+      <div id="shortcuts-container" class="shortcut-grid"></div>
+    </section>
+
+    <main class="dashboard-grid">
+      <section class="main-column">
+        <div class="control-panel tabs-panel">
+          <div class="main-panel-header">
+            <h2 class="section-title" data-i18n="openedTabs">已打开的网页</h2>
+            <span id="tab-count" class="tab-count-badge">0 个标签页</span>
+          </div>
+          <div class="tabs-toolbar">
+            <input id="tab-search-input" type="text" class="tab-search" data-i18n="searchPlaceholder" placeholder="搜索标题或网址…">
+            <button id="dedupe-btn" class="btn" data-i18n="dedupeTabs">清理重复</button>
+          </div>
+          <div id="tabs-container" class="tabs-container"></div>
+        </div>
+      </section>
+
+      <aside class="side-column">
+        <div class="control-panel stats-panel">
+          <div class="section-heading vertical-heading">
+            <h2 class="section-title" data-i18n="statsTitle">浏览习惯</h2>
+            <div class="segmented-control" id="stats-view-switcher">
+              <button class="is-active" data-stats-view="day" data-i18n="statsDay">今天</button>
+              <button data-stats-view="week" data-i18n="statsWeek">本周</button>
+              <button data-stats-view="month" data-i18n="statsMonth">本月</button>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-primary">0</div>
+              <div class="stat-label" id="stat-primary-label" data-i18n="dailyOpened">今日新开网页</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-secondary">0</div>
+              <div class="stat-label" id="stat-secondary-label" data-i18n="weeklyOpened">本周新开网页</div>
+            </div>
+          </div>
+          <div id="stats-subtitle" class="stats-subtitle">今日分时打开趋势</div>
+          <div class="chart-wrap">
+            <canvas id="tabsChart"></canvas>
+          </div>
+          <div class="top-sites">
+            <div class="top-sites-title" data-i18n="topSitesTitle">当前停留最久的网站</div>
+            <div id="top-sites-list" class="top-sites-list"></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="settings-modal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 class="modal-title" data-i18n="settingsTitle">设置</h2>
+        <button id="close-settings" class="icon-btn">✕</button>
+      </div>
+
+      <div class="settings-grid">
+        <div class="field">
+          <label data-i18n="langLabel">语言</label>
+          <select id="lang-select">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-i18n="themeLabel">主题模式</label>
+          <select id="theme-select">
+            <option value="system" data-i18n="themeSystem">跟随系统</option>
+            <option value="dark" data-i18n="themeDark">深色模式</option>
+            <option value="light" data-i18n="themeLight">浅色模式</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="switch-row" style="margin-top:14px;">
+        <div>
+          <div class="field-label" data-i18n="autoOrganizeLabel">自动整理新打开的网页</div>
+          <div class="section-note" data-i18n="autoOrganizeHint">关闭后不会自动分组，只在你点“一键整理”时执行</div>
+        </div>
+        <input id="auto-organize-toggle" type="checkbox" checked>
+      </div>
+
+      <div class="switch-row" style="margin-top:14px;">
+        <div>
+          <div class="field-label" data-i18n="autoCollapseLabel">自动折叠非当前标签组</div>
+          <div class="section-note" data-i18n="autoCollapseHint">切换网页时，当前组展开，其他组自动收起</div>
+        </div>
+        <input id="auto-collapse-toggle" type="checkbox" checked>
+      </div>
+
+      <div class="switch-row" style="margin-top:14px;">
+        <div>
+          <div class="field-label" data-i18n="dedupeLabel">自动关闭重复网页</div>
+          <div class="section-note" data-i18n="dedupeHint">当你打开一个已经开着的网址时，自动关掉旧的那个，只保留最新的</div>
+        </div>
+        <input id="dedupe-toggle" type="checkbox" checked>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <div class="field-label" data-i18n="backgroundPresetLabel">默认背景主题</div>
+        <div class="preset-grid">
+          <button class="preset-btn preset-dopamine" data-bg-preset="dopamine" data-i18n="presetDopamine">多巴胺</button>
+          <button class="preset-btn preset-candy" data-bg-preset="candy" data-i18n="presetCandy">糖果</button>
+          <button class="preset-btn preset-sunrise" data-bg-preset="sunrise" data-i18n="presetSunrise">日出</button>
+          <button class="preset-btn preset-mint" data-bg-preset="mint" data-i18n="presetMint">薄荷</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px;">
+        <label data-i18n="bgImageLabel">自定义背景图（选本地图片）</label>
+        <div class="bg-image-row">
+          <input id="bg-file-input" type="file" accept="image/*" hidden>
+          <button id="pick-bg-btn" class="btn" data-i18n="pickImage">选择图片</button>
+          <button id="clear-bg-btn" class="btn" data-i18n="clearImage">恢复默认背景</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <div class="field-label" data-i18n="friendlyRuleTitle">自定义标签规则（不用写代码）</div>
+        <div class="rule-form">
+          <input id="rule-domain-input" type="text" placeholder="github.com / lark-docx">
+          <input id="rule-emoji-input" type="text" placeholder="📝">
+          <input id="rule-name-input" type="text" placeholder="Lark Docs">
+          <select id="rule-color-select">
+            <option value="blue">Blue</option>
+            <option value="cyan">Cyan</option>
+            <option value="purple">Purple</option>
+            <option value="green">Green</option>
+            <option value="orange">Orange</option>
+            <option value="pink">Pink</option>
+            <option value="red">Red</option>
+            <option value="yellow">Yellow</option>
+            <option value="grey">Grey</option>
+          </select>
+          <button id="save-rule-btn" class="btn btn-primary" data-i18n="saveRule">保存规则</button>
+        </div>
+        <div id="rule-list" class="rule-list"></div>
+      </div>
+
+      <details class="advanced-block">
+        <summary data-i18n="advancedJsonToggle">高级：查看/编辑 JSON</summary>
+        <p data-i18n="jsonDesc">可自定义域名对应的标题、Emoji和颜色。</p>
+        <textarea id="custom-rules-input" placeholder='{"google.com": {"title": "🔍 Google", "color": "blue"}}'></textarea>
+        <button id="reset-rules-btn" class="btn" style="margin-top:10px;" data-i18n="resetRules">重置为默认</button>
+      </details>
+
+      <button id="save-settings-btn" class="btn btn-primary" style="width:100%; margin-top:18px;" data-i18n="saveBtn">保存设置并刷新</button>
+    </div>
+  </div>
+
+  <div id="shortcut-modal" class="modal">
+    <div class="modal-card compact-modal">
+      <div class="modal-head">
+        <h2 class="modal-title" id="shortcut-modal-title" data-i18n="shortcutEditorTitle">编辑网站</h2>
+        <button id="close-shortcut-modal" class="icon-btn">✕</button>
+      </div>
+      <input id="shortcut-id-input" type="hidden">
+      <div class="settings-grid">
+        <div class="field">
+          <label data-i18n="emojiLabel">Emoji</label>
+          <input id="shortcut-emoji-input" type="text" placeholder="🌈">
+        </div>
+        <div class="field">
+          <label data-i18n="siteNameLabel">网站名称</label>
+          <input id="shortcut-title-input" type="text" placeholder="Google">
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label data-i18n="siteUrlLabel">网站链接</label>
+        <input id="shortcut-url-input" type="text" placeholder="https://example.com">
+      </div>
+      <button id="save-shortcut-btn" class="btn btn-primary" style="width:100%; margin-top:18px;" data-i18n="saveShortcut">保存网站</button>
+    </div>
+  </div>
+
+  <div id="site-rule-modal" class="modal">
+    <div class="modal-card compact-modal">
+      <div class="modal-head">
+        <h2 class="modal-title" data-i18n="siteRuleEditorTitle">自定义网站分类</h2>
+        <button id="close-site-rule-modal" class="icon-btn">✕</button>
+      </div>
+      <input id="site-rule-key-input" type="hidden">
+      <div class="settings-grid">
+        <div class="field">
+          <label data-i18n="emojiLabel">Emoji</label>
+          <input id="site-rule-emoji-input" type="text" placeholder="🌈">
+        </div>
+        <div class="field">
+          <label data-i18n="siteNameLabel">网站名称</label>
+          <input id="site-rule-name-input" type="text" placeholder="Lark Docs">
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label data-i18n="colorLabel">颜色</label>
+        <select id="site-rule-color-select">
+          <option value="blue">Blue</option>
+          <option value="cyan">Cyan</option>
+          <option value="purple">Purple</option>
+          <option value="green">Green</option>
+          <option value="orange">Orange</option>
+          <option value="pink">Pink</option>
+          <option value="red">Red</option>
+          <option value="yellow">Yellow</option>
+          <option value="grey">Grey</option>
+        </select>
+      </div>
+      <button id="save-site-rule-btn" class="btn btn-primary" style="width:100%; margin-top:18px;" data-i18n="saveRule">保存规则</button>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

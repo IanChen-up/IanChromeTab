@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs & temp
+*.log
+_preview.html
+tmp/
+*.tmp
+
+# OS / misc
+Thumbs.db
+Desktop.ini
