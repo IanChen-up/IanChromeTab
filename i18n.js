@@ -14,6 +14,8 @@ const translations = {
     closeDuplicates: "关闭重复",
 
     searchPlaceholder: "搜索标题或网址…",
+    webSearchPlaceholder: "搜索网页，或输入网址…",
+    searchBtn: "搜索",
     noSearchResult: "没有匹配的网页",
     closeGroup: "关闭整组",
     closeGroupConfirm: "确定要关闭这一组的 {0} 个网页吗？",
@@ -110,6 +112,8 @@ const translations = {
     closeDuplicates: "Close Duplicates",
 
     searchPlaceholder: "Search title or URL…",
+    webSearchPlaceholder: "Search the web, or enter a URL…",
+    searchBtn: "Search",
     noSearchResult: "No matching pages",
     closeGroup: "Close Group",
     closeGroupConfirm: "Close all {0} pages in this group?",

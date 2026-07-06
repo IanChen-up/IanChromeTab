@@ -56,6 +56,12 @@ let customBackgroundImage = "";
 let currentStatsView = "day";
 let latestGroups = [];
 let tabSearchTerm = "";
+let selectedSearchEngine = "google";
+
+const SEARCH_ENGINES = {
+  google: "https://www.google.com/search?q=",
+  bing: "https://www.bing.com/search?q="
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
@@ -69,7 +75,8 @@ async function initDashboard() {
     "backgroundPreset",
     "bgImage",
     "autoCollapseGroups",
-    "designVersion"
+    "designVersion",
+    "searchEngine"
   ]);
 
   if (settings.designVersion !== DESIGN_VERSION) {
@@ -85,9 +92,11 @@ async function initDashboard() {
   }
 
   customBackgroundImage = settings.bgImage || "";
+  selectedSearchEngine = SEARCH_ENGINES[settings.searchEngine] ? settings.searchEngine : "google";
   setLanguage(settings.lang || "zh");
   applyTheme(settings.theme || "light");
   applyBackground(settings.backgroundPreset || "dopamine", customBackgroundImage);
+  updateSearchEngineState();
   updateDOMTranslations();
 
   await renderShortcuts();
@@ -129,6 +138,20 @@ function setupEventListeners() {
   searchInput.addEventListener("input", () => {
     tabSearchTerm = searchInput.value.trim().toLowerCase();
     renderTabGroups(latestGroups, {});
+  });
+
+  const webSearchInput = document.getElementById("web-search-input");
+  webSearchInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") performWebSearch();
+  });
+  document.getElementById("web-search-btn").addEventListener("click", performWebSearch);
+  document.querySelectorAll("#engine-switch [data-engine]").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedSearchEngine = button.dataset.engine;
+      updateSearchEngineState();
+      chrome.storage.local.set({ searchEngine: selectedSearchEngine });
+      webSearchInput.focus();
+    });
   });
 
   document.querySelectorAll("[data-bg-preset]").forEach(button => {
@@ -203,6 +226,34 @@ function updatePresetState() {
   document.querySelectorAll("[data-bg-preset]").forEach(button => {
     button.classList.toggle("is-active", button.dataset.bgPreset === selectedBackgroundPreset);
   });
+}
+
+function updateSearchEngineState() {
+  document.querySelectorAll("#engine-switch [data-engine]").forEach(button => {
+    button.classList.toggle("is-active", button.dataset.engine === selectedSearchEngine);
+  });
+}
+
+// 顶部搜索框：输入的是网址就直接跳转，否则用选定的搜索引擎搜索。
+function performWebSearch() {
+  const input = document.getElementById("web-search-input");
+  const query = input.value.trim();
+  if (!query) return;
+
+  const target = looksLikeUrl(query)
+    ? normalizeUrl(query)
+    : SEARCH_ENGINES[selectedSearchEngine] + encodeURIComponent(query);
+
+  chrome.tabs.create({ url: target });
+  input.value = "";
+}
+
+// 粗略判断用户输入的是否是一个网址（含协议、或形如 domain.tld 且不含空格）。
+function looksLikeUrl(text) {
+  if (/\s/.test(text)) return false;
+  if (/^https?:\/\//i.test(text)) return true;
+  if (/^localhost(:\d+)?(\/|$)/i.test(text)) return true;
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?(\/.*)?$/i.test(text);
 }
 
 async function openSettings() {

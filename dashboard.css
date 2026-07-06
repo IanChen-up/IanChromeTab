@@ -138,6 +138,119 @@ body.theme-dark.bg-mint { background-color: #101c18; }
   padding: 20px;
 }
 
+/* ===== 顶部网页搜索（导航页核心） ===== */
+.hero-search-panel {
+  margin-top: 16px;
+}
+
+.hero-search {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.engine-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--panel-bg) 70%, transparent);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow);
+}
+
+.engine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--page-muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  transition: color 0.16s ease, background 0.16s ease;
+}
+
+.engine-btn.is-active {
+  color: #fff;
+  background: linear-gradient(135deg, #ff4d8d, #7c5cff);
+}
+
+.engine-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.engine-dot-google {
+  background: conic-gradient(from -45deg, #ea4335, #fbbc05, #34a853, #4285f4, #ea4335);
+}
+
+.engine-dot-bing {
+  background: #008373;
+}
+
+.hero-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(680px, 100%);
+  padding: 8px 8px 8px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 10px 30px rgba(23, 32, 51, 0.1);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.hero-search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 12px 34px rgba(124, 92, 255, 0.22);
+}
+
+.hero-search-icon {
+  font-size: 17px;
+  opacity: 0.75;
+}
+
+.hero-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--page-text);
+  font-size: 15px;
+  outline: none;
+}
+
+.hero-search-input::placeholder {
+  color: var(--page-muted);
+}
+
+.hero-search-btn {
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  background: linear-gradient(135deg, #ff4d8d, #7c5cff);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.hero-search-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(124, 92, 255, 0.3);
+}
+
 .quick-panel {
   margin-top: 16px;
 }
