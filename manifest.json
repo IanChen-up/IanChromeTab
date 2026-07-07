@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "IanChromeTab - 网页标签高级管理",
-  "version": "1.0",
+  "version": "1.1",
   "description": "智能按域名对标签页进行两级分组管理，并提供自定义极简中控台。",
   "permissions": [
     "tabs",

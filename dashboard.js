@@ -102,6 +102,7 @@ async function initDashboard() {
   await renderShortcuts();
   await renderTabs();
   await renderStats();
+  renderGitHubTrending();
 
   chrome.tabs.onUpdated.addListener(renderTabs);
   chrome.tabs.onRemoved.addListener(renderTabs);
@@ -708,6 +709,110 @@ async function renderTopSites() {
     `;
     listEl.appendChild(row);
   });
+}
+
+// ==========================================
+// GitHub 本月热门（近一个月新建、按星标排序的前 10）
+// ==========================================
+const GH_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 小时缓存，避免频繁请求触发限流
+
+async function renderGitHubTrending(forceRefresh = false) {
+  const listEl = document.getElementById("gh-trending-list");
+  const updatedEl = document.getElementById("gh-updated");
+  if (!listEl) return;
+
+  const store = await chrome.storage.local.get(["ghTrendingCache", "ghTrendingSeen"]);
+  const cache = store.ghTrendingCache;
+  const fresh = cache && Date.now() - cache.fetchedAt < GH_CACHE_TTL;
+
+  let repos;
+  if (fresh && !forceRefresh) {
+    repos = cache.repos;
+  } else {
+    listEl.innerHTML = `<div class="gh-empty">${escapeHTML(t("ghLoading"))}</div>`;
+    repos = await fetchGitHubTrending();
+    if (repos && repos.length) {
+      await chrome.storage.local.set({ ghTrendingCache: { fetchedAt: Date.now(), repos } });
+    } else if (cache) {
+      repos = cache.repos; // 拉取失败时回退到旧缓存
+    }
+  }
+
+  if (!repos || !repos.length) {
+    listEl.innerHTML = `<div class="gh-empty">${escapeHTML(t("ghError"))}<br><button class="btn" id="gh-retry-btn">${escapeHTML(t("ghRetry"))}</button></div>`;
+    const retry = document.getElementById("gh-retry-btn");
+    if (retry) retry.addEventListener("click", () => renderGitHubTrending(true));
+    if (updatedEl) updatedEl.textContent = "";
+    return;
+  }
+
+  // 与上次看到的榜单对比，标记「新上榜」。
+  const seen = new Set(store.ghTrendingSeen || []);
+  const currentIds = repos.map(repo => repo.id);
+
+  listEl.innerHTML = "";
+  repos.forEach((repo, index) => {
+    const isNew = seen.size > 0 && !seen.has(repo.id);
+    const [owner, name] = repo.fullName.split("/");
+    const item = document.createElement("a");
+    item.className = "gh-item";
+    item.href = repo.url;
+    item.target = "_blank";
+    item.rel = "noopener";
+    item.innerHTML = `
+      <span class="gh-rank">${index + 1}</span>
+      <div class="gh-main">
+        <div class="gh-name">
+          <span><span class="gh-repo-owner">${escapeHTML(owner)}/</span>${escapeHTML(name)}</span>
+          ${isNew ? `<span class="gh-new-badge">${escapeHTML(t("ghNew"))}</span>` : ""}
+        </div>
+        ${repo.description ? `<div class="gh-desc">${escapeHTML(repo.description)}</div>` : ""}
+      </div>
+      <div class="gh-stars">
+        <span class="gh-star-count">⭐ ${formatStars(repo.stars)}</span>
+      </div>
+    `;
+    listEl.appendChild(item);
+  });
+
+  // 记录本次榜单，作为下次「新上榜」的对比基准。
+  await chrome.storage.local.set({ ghTrendingSeen: currentIds });
+
+  if (updatedEl) {
+    const when = new Date((fresh && !forceRefresh) ? cache.fetchedAt : Date.now());
+    updatedEl.textContent = t("ghUpdatedAt", `${String(when.getHours()).padStart(2, "0")}:${String(when.getMinutes()).padStart(2, "0")}`);
+  }
+}
+
+// 调 GitHub 公开搜索 API：最近 30 天内创建、按星标降序的前 10 个仓库。
+async function fetchGitHubTrending() {
+  try {
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const dateStr = `${since.getFullYear()}-${String(since.getMonth() + 1).padStart(2, "0")}-${String(since.getDate()).padStart(2, "0")}`;
+    const url = `https://api.github.com/search/repositories?q=created:>${dateStr}&sort=stars&order=desc&per_page=10`;
+
+    const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (!data || !Array.isArray(data.items)) return null;
+
+    return data.items.map(item => ({
+      id: item.id,
+      fullName: item.full_name,
+      url: item.html_url,
+      description: item.description || "",
+      stars: item.stargazers_count || 0
+    }));
+  } catch (e) {
+    return null;
+  }
+}
+
+function formatStars(count) {
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+  return String(count);
 }
 
 async function renderTabs() {
