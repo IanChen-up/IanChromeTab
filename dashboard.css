@@ -432,7 +432,13 @@ body.theme-dark.bg-mint { background-color: #0f1c19; }
   align-items: start;
 }
 
-.side-column,
+.side-column {
+  min-width: 0;
+  position: sticky;
+  top: 18px;
+  align-self: start;
+}
+
 .main-column {
   min-width: 0;
 }
@@ -693,8 +699,7 @@ body.theme-dark.bg-mint { background-color: #0f1c19; }
 }
 
 .stats-panel {
-  position: sticky;
-  top: 18px;
+  position: relative;
 }
 
 .segmented-control {
@@ -1136,7 +1141,7 @@ body.theme-dark.bg-mint { background-color: #0f1c19; }
     grid-template-columns: 1fr;
   }
 
-  .stats-panel {
+  .side-column {
     position: static;
   }
 }
