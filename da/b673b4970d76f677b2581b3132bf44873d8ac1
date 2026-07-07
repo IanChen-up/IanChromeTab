@@ -1,0 +1,60 @@
+README.md
+  s_b68f7c8db3272f::t_24fadf4773a539 97 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a4c6653bd1df054911892e9","tool_type":"agent","tool_id":"Edit","line_ranges":[{"Single":97}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "dab673b4970d76f677b2581b3132bf44873d8ac1",
+  "prompts": {},
+  "sessions": {
+    "s_b68f7c8db3272f": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a47670064fbd3e75f481df5",
+        "model": "openrouter-3o__max"
+      },
+      "human_author": "IanChen-up <chenxiaotong0202@126.com>"
+    }
+  },
+  "attestation_metadata": {
+    "README.md": [
+      {
+        "hash": "s_b68f7c8db3272f::t_24fadf4773a539",
+        "line_ranges": [
+          {
+            "Single": 97
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a4c6653bd1df054911892e9",
+            "tool_type": "agent",
+            "tool_id": "Edit",
+            "line_ranges": [
+              {
+                "Single": 97
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "s_b68f7c8db3272f": {
+      "tool": "trae",
+      "conversation_id": "6a47670064fbd3e75f481df5",
+      "session_id": "6a47670064fbd3e75f481df5",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    },
+    "s_b68f7c8db3272f::t_24fadf4773a539": {
+      "tool": "trae",
+      "conversation_id": "6a47670064fbd3e75f481df5",
+      "session_id": "6a47670064fbd3e75f481df5",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
